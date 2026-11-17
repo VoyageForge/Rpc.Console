@@ -1,0 +1,16 @@
+﻿{
+  "name": "VoyageForge.Console",
+  "rootNamespace": "VoyageForge.Terminal",
+  "references": [
+    "VoyageForge.Depot.Runtime"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
