@@ -61,8 +61,6 @@ namespace VoyageForge.Terminal
         private ConsoleLogList _logList;         // 日志列表视图
         private ConsoleCommandLine _commandLine; // 命令输入行
 
-        /// <summary>日志记录器：log on/off 开关，写入 persistentDataPath。</summary>
-        public VoyageForge.Terminal.Logging.LogRecorder LogRecorder { get; private set; }
 
         // ---------------------------------------------------------------
         // 命令树
@@ -419,7 +417,7 @@ namespace VoyageForge.Terminal
 
             // 创建子模块：日志列表 + 命令输入行
             _logList = new ConsoleLogList(_list, _maxEntries);
-            LogRecorder = new VoyageForge.Terminal.Logging.LogRecorder();
+
 
             // 根节点 + 所有程序集的 [ConsoleCommand] 生成器命令（内置命令也由生成器提供）。
             _commandRoot = new ConsoleCommand("console");

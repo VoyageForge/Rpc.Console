@@ -17,23 +17,27 @@ namespace VoyageForge.Terminal.Commands
         public Task<object> Execute(
             [CompletionSource("GetModes")] string mode, CommandInvocation invocation)
         {
-            Console console = Console.HasInstance ? Console.Instance : null;
-            LogRecorder recorder = console != null ? console.LogRecorder : null;
-            if (recorder == null)
-            {
-                invocation.Context.Renderer.WriteError("日志记录器未初始化。");
-                return Task.FromResult<object>(null);
-            }
-
             if (string.Equals(mode, "on", System.StringComparison.OrdinalIgnoreCase))
             {
-                recorder.Start();
-                invocation.Context.Renderer.WriteLine("日志记录已开启：" + recorder.CurrentFilePath);
+                if (LogRecorderBridge.IsRecording)
+                {
+                    invocation.Context.Renderer.WriteLine("日志记录已在开启状态：" + LogRecorderBridge.CurrentFilePath);
+                    return Task.FromResult<object>(null);
+                }
+
+                LogRecorderBridge.Start();
+                invocation.Context.Renderer.WriteLine("日志记录已开启：" + LogRecorderBridge.CurrentFilePath);
             }
             else if (string.Equals(mode, "off", System.StringComparison.OrdinalIgnoreCase))
             {
-                string path = recorder.CurrentFilePath;
-                recorder.Stop();
+                if (!LogRecorderBridge.IsRecording)
+                {
+                    invocation.Context.Renderer.WriteLine("日志记录未开启，上次文件：" + LogRecorderBridge.LastFilePath);
+                    return Task.FromResult<object>(null);
+                }
+
+                string path = LogRecorderBridge.CurrentFilePath;
+                LogRecorderBridge.Stop();
                 invocation.Context.Renderer.WriteLine("日志记录已关闭：" + path);
             }
             else

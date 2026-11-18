@@ -73,11 +73,16 @@ namespace VoyageForge.Terminal.Tests
         [Test]
         public void 执行_log_开关()
         {
-            // 测试环境没有 Console 实例，log 命令应通过错误输出提示记录器未初始化。
+            // LogRecorderBridge 独立于 Console，测试环境也能直接开关。
             bool ok = new ConsoleExecutor(_renderer).ExecuteAsync(_root, "log on").GetAwaiter().GetResult();
             Assert.IsTrue(ok);
-            Assert.IsTrue(_renderer.Errors.Exists(line => line.Contains("未初始化")),
-                "期望提示日志记录器未初始化。");
+            Assert.IsTrue(_renderer.Lines.Exists(line => line.Contains("日志记录已开启")),
+                "期望输出日志已开启。");
+
+            ok = new ConsoleExecutor(_renderer).ExecuteAsync(_root, "log off").GetAwaiter().GetResult();
+            Assert.IsTrue(ok);
+            Assert.IsTrue(_renderer.Lines.Exists(line => line.Contains("日志记录已关闭")),
+                "期望输出日志已关闭。");
         }
 
         [Test]

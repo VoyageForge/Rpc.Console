@@ -18,6 +18,12 @@ namespace VoyageForge.Terminal.Logging
         private StreamWriter _writer;
         private bool _recording;
 
+        /// <summary>持久化开关状态的 PlayerPrefs 键。</summary>
+        private const string RecordingKey = "VoyageForge.Terminal.LogRecording";
+
+        /// <summary>上次日志文件路径的 PlayerPrefs 键。</summary>
+        private const string PathKey = "VoyageForge.Terminal.LogFilePath";
+
         /// <summary>创建记录器。</summary>
         public LogRecorder(string directory = null)
         {
@@ -46,6 +52,18 @@ namespace VoyageForge.Terminal.Logging
                 _writer.AutoFlush = true;
                 _recording = true;
                 Application.logMessageReceived += OnLogMessage;
+                PlayerPrefs.SetInt(RecordingKey, 1);
+                PlayerPrefs.SetString(PathKey, CurrentFilePath);
+                PlayerPrefs.Save();
+            }
+        }
+
+        /// <summary>立即把缓冲写入磁盘（移动端切后台/低内存时调用）。</summary>
+        public void Flush()
+        {
+            lock (_sync)
+            {
+                _writer?.Flush();
             }
         }
 
@@ -60,20 +78,43 @@ namespace VoyageForge.Terminal.Logging
                 _writer?.Flush();
                 _writer?.Dispose();
                 _writer = null;
+                PlayerPrefs.SetInt(RecordingKey, 0);
+                PlayerPrefs.Save();
             }
         }
 
+        /// <summary>
+        /// 与 Unity PC 日志（Player.log）相同的文本格式：
+        /// [时间] [级别] 消息
+        /// 堆栈（有则换行跟在后面）
+        /// </summary>
         private void OnLogMessage(string condition, string stackTrace, LogType type)
         {
             lock (_sync)
             {
                 if (_writer == null) return;
+
                 _writer.WriteLine("[" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff") + "][" + type + "] " + condition);
-                if (type == LogType.Error || type == LogType.Exception)
+                if (!string.IsNullOrEmpty(stackTrace))
                 {
                     _writer.WriteLine(stackTrace);
                 }
             }
+        }
+
+        /// <summary>恢复上次的开关状态：上次开启则自动继续记录（新文件）。</summary>
+        public void Restore()
+        {
+            if (PlayerPrefs.GetInt(RecordingKey, 0) == 1 && !_recording)
+            {
+                Start();
+            }
+        }
+
+        /// <summary>上次日志文件路径（当前未记录时用于回显）。</summary>
+        public string LastFilePath
+        {
+            get { return PlayerPrefs.GetString(PathKey, string.Empty); }
         }
 
         /// <inheritdoc />
