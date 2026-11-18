@@ -1,8 +1,8 @@
 ﻿{
-    "name": "VoyageForge.Console.Samples",
+    "name": "VoyageForge.Terminal.Samples",
     "rootNamespace": "",
     "references": [
-        "VoyageForge.Console",
+        "VoyageForge.Terminal",
         
         "VoyageForge.Depot.Runtime"
     ],

@@ -30,9 +30,9 @@ Runtime/Scripts/
 
 分层：
 
-- **UI**：`RuntimeConsole`（面板、日志、输入行、补全列表）；
+- **UI**：`Console`（面板、日志、输入行、补全列表）；
 - **命令树**：`ConsoleCommand` 描述命令/子命令/参数；`ConsoleExecutor` 执行；`CommandCompletion` 补全；
-- **宿主**：在 `RuntimeConsole` 构建时创建根命令并注入 `ConsoleExecutor`。
+- **宿主**：在 `Console` 构建时创建根命令并注入 `ConsoleExecutor`。
 
 ## 命令树 API
 
@@ -56,7 +56,7 @@ IReadOnlyList<CompletionItem> items = CommandCompletion.Get(root, new[] { "liste
 
 ## 源代码生成器（CodeGen~）
 
-`CodeGen~/VoyageForge.Console.CodeGen` 扫描 `[ConsoleCommand]`，生成**实例类** `ConsoleCommandCatalog : ICommandSource`（不生成静态入口）。
+`CodeGen~/VoyageForge.Terminal.CodeGen` 扫描 `[ConsoleCommand]`，生成**实例类** `ConsoleCommandCatalog : ICommandSource`（不生成静态入口）。
 
 ```csharp
 [ConsoleCommand("demo2", "生成器示例命令")]
@@ -91,7 +91,7 @@ foreach (ConsoleCommand command in catalog.GetCommands())
 .\Build-CodeGen.ps1
 ```
 
-DLL 部署到 `Runtime/Analyzers/VoyageForge.Console.CodeGen.dll`，meta 由模板生成（Asset Label `RoslynAnalyzer`）。
+DLL 部署到 `Runtime/Analyzers/VoyageForge.Terminal.CodeGen.dll`，meta 由模板生成（Asset Label `RoslynAnalyzer`）。
 
 ## 内置命令
 

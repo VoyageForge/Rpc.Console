@@ -1,6 +1,6 @@
-{
+﻿{
     "name": "com.voyageforge.rpc-console",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "displayName": "VoyageForge RPC Console",
     "description": "VoyageForge 运行时控制台：UI Toolkit 面板、日志视图、输入行；命令层基于命令树（ConsoleCommand/ConsoleExecutor/CommandCompletion）。",
     "unity": "2022.3",

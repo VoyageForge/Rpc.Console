@@ -170,6 +170,27 @@ namespace VoyageForge.Terminal.CodeGen
             {
                 if (method.IsRoot)
                 {
+                    // 根节点同样生成位置参数（例如 listen <on/off>）。
+                    foreach (IParameterSymbol parameter in method.Method.Parameters)
+                    {
+                        if (IsInvocationParameter(parameter)) continue;
+                        source.Append("            root").AppendLine(".Arguments.Add(new ConsoleArgument");
+                        source.AppendLine("            {");
+                        source.Append("                Name = \"").Append(CSharpEscape(parameter.Name)).AppendLine("\",");
+                        source.Append("                Description = \"")
+                            .Append(CSharpEscape(parameter.Name)).AppendLine("\",");
+                        source.Append("                Type = typeof(")
+                            .Append(TypeSyntax(parameter.Type)).AppendLine("),");
+                        string completionMethod = GetCompletionSource(parameter);
+                        if (completionMethod != null)
+                        {
+                            source.Append("                CompletionProvider = context => instance.")
+                                .Append(completionMethod).AppendLine("(context)");
+                        }
+
+                        source.AppendLine("            });");
+                    }
+
                     source.AppendLine("            root.Handler = invocation =>");
                     source.AppendLine("            {");
                     EmitCall(source, method, "root");
@@ -203,7 +224,14 @@ namespace VoyageForge.Terminal.CodeGen
                         source.Append("                Description = \"")
                             .Append(CSharpEscape(parameter.Name)).AppendLine("\",");
                         source.Append("                Type = typeof(")
-                            .Append(TypeSyntax(parameter.Type)).AppendLine(")");
+                            .Append(TypeSyntax(parameter.Type)).AppendLine("),");
+                        string completionMethod = GetCompletionSource(parameter);
+                        if (completionMethod != null)
+                        {
+                            source.Append("                CompletionProvider = context => instance.")
+                                .Append(completionMethod).AppendLine("(context)");
+                        }
+
                         source.AppendLine("            });");
                     }
 
@@ -301,6 +329,19 @@ namespace VoyageForge.Terminal.CodeGen
             return symbol.GetAttributes().Any(a => a.AttributeClass?.ToDisplayString() == attributeName);
         }
 
+        /// <summary>读取参数上的 [CompletionSource("Method")]，返回补全方法名；没有则 null。</summary>
+        private static string GetCompletionSource(IParameterSymbol parameter)
+        {
+            foreach (AttributeData attribute in parameter.GetAttributes())
+            {
+                if (attribute.AttributeClass?.ToDisplayString() != CompletionSourceAttribute) continue;
+                return attribute.ConstructorArguments.Length > 0
+                    ? attribute.ConstructorArguments[0].Value as string
+                    : null;
+            }
+
+            return null;
+        }
         private static string TypeSyntax(ITypeSymbol type)
         {
             return type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);

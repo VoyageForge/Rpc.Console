@@ -1,5 +1,5 @@
 ﻿{
-  "name": "VoyageForge.Console",
+  "name": "VoyageForge.Terminal",
   "rootNamespace": "VoyageForge.Terminal",
   "references": [
     "VoyageForge.Depot.Runtime"

@@ -1,8 +1,8 @@
-{
-  "name": "VoyageForge.Console.Tests.PlayMode",
+﻿{
+  "name": "VoyageForge.Terminal.Tests.PlayMode",
   "rootNamespace": "VoyageForge.Console.Tests",
   "references": [
-    "VoyageForge.Console",
+    "VoyageForge.Terminal",
     "UnityEngine.TestRunner",
     "UnityEditor.TestRunner"
   ],

@@ -8,6 +8,19 @@ namespace VoyageForge.Terminal.Tests
     /// <summary>PlayMode 下的命令树补全规则。</summary>
     public sealed class ConsoleCompletionPlayModeTests
     {
+        private static ConsoleCommand BuildRoot(IConsoleRenderer renderer)
+        {
+            ConsoleCommand root = new ConsoleCommand("console");
+            ConsoleCommandCatalogAggregator aggregator = new ConsoleCommandCatalogAggregator();
+            foreach (ConsoleCommand command in aggregator.Collect())
+            {
+                command.Parent = root;
+                root.Subcommands.Add(command);
+            }
+
+            return root;
+        }
+
         private sealed class NullRenderer : IConsoleRenderer
         {
             public void WriteLine(string text) { }
@@ -20,7 +33,7 @@ namespace VoyageForge.Terminal.Tests
         [SetUp]
         public void SetUp()
         {
-            _root = new BuiltinCommandTree(new NullRenderer()).Build();
+            _root = BuildRoot(new NullRenderer());
         }
 
         [UnityTest]

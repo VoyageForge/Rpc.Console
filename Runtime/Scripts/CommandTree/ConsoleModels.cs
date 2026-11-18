@@ -36,6 +36,9 @@ namespace VoyageForge.Terminal
         public IList<ConsoleArgument> Arguments { get; } = new List<ConsoleArgument>();
         /// <summary>直接子节点集合，不包含更深层级的后代节点。</summary>
         public IList<ConsoleCommand> Subcommands { get; } = new List<ConsoleCommand>();
+        /// <summary>父节点；根节点为 null。</summary>
+        public ConsoleCommand Parent { get; set; }
+
         /// <summary>执行本节点时调用的委托；没有处理器的纯分组节点为 null。</summary>
         public Func<CommandInvocation, Task<object>> Handler { get; set; }
 
@@ -72,6 +75,7 @@ namespace VoyageForge.Terminal
             }
 
             ConsoleCommand created = new ConsoleCommand(name, description);
+            created.Parent = this;
             Subcommands.Add(created);
             return created;
         }

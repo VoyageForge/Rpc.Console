@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("VoyageForge.Console.CodeGen")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9389534ffee87ed5bf8006c9449efa749cd6da75")]
 [assembly: System.Reflection.AssemblyProductAttribute("VoyageForge.Console.CodeGen")]
 [assembly: System.Reflection.AssemblyTitleAttribute("VoyageForge.Console.CodeGen")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

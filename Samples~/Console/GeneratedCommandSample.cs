@@ -35,7 +35,7 @@ namespace VoyageForge.Terminal.Samples
         private void RegisterGeneratedCommands(Console console)
         {
             // 生成器产物是实例类：不依赖静态入口，也不扫描反射。
-            VoyageForge_Console_SamplesCommandCatalog catalog = new VoyageForge_Console_SamplesCommandCatalog();
+            VoyageForge_Terminal_SamplesCommandCatalog catalog = new VoyageForge_Terminal_SamplesCommandCatalog();
             foreach (ConsoleCommand command in catalog.GetCommands())
             {
                 console.RegisterCommand(command);

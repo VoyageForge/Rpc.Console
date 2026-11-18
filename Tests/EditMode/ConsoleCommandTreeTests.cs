@@ -6,6 +6,25 @@ namespace VoyageForge.Terminal.Tests
     /// <summary>命令树补全与执行测试（不依赖 UI）。</summary>
     public sealed class ConsoleCommandTreeTests
     {
+        private static ConsoleCommand BuildRoot(IConsoleRenderer renderer)
+        {
+            ConsoleCommand root = new ConsoleCommand("console");
+            ConsoleCommandCatalogAggregator aggregator = new ConsoleCommandCatalogAggregator();
+            int count = 0;
+            foreach (ConsoleCommand command in aggregator.Collect())
+            {
+                root.Subcommands.Add(command);
+                count++;
+            }
+
+            UnityEngine.Debug.Log("[Test] collected commands: " + count);
+            foreach (ConsoleCommand command in root.Subcommands)
+            {
+                UnityEngine.Debug.Log("[Test] command " + command.Name + " args=" + command.Arguments.Count + " subs=" + command.Subcommands.Count + " handler=" + (command.Handler != null));
+            }
+            return root;
+        }
+
         /// <summary>捕获输出的测试渲染器。</summary>
         private sealed class CaptureRenderer : IConsoleRenderer
         {
@@ -24,7 +43,7 @@ namespace VoyageForge.Terminal.Tests
         public void SetUp()
         {
             _renderer = new CaptureRenderer();
-            _root = new BuiltinCommandTree(_renderer).Build();
+            _root = BuildRoot(_renderer);
         }
 
         [Test]
@@ -52,11 +71,13 @@ namespace VoyageForge.Terminal.Tests
         }
 
         [Test]
-        public void 执行_log_输出文本()
+        public void 执行_log_开关()
         {
-            bool ok = new ConsoleExecutor(_renderer).ExecuteAsync(_root, "log hello").GetAwaiter().GetResult();
+            // 测试环境没有 Console 实例，log 命令应通过错误输出提示记录器未初始化。
+            bool ok = new ConsoleExecutor(_renderer).ExecuteAsync(_root, "log on").GetAwaiter().GetResult();
             Assert.IsTrue(ok);
-            CollectionAssert.Contains(_renderer.Lines, "hello");
+            Assert.IsTrue(_renderer.Errors.Exists(line => line.Contains("未初始化")),
+                "期望提示日志记录器未初始化。");
         }
 
         [Test]
