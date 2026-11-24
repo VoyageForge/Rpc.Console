@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 
 namespace VoyageForge.Terminal
@@ -6,7 +6,7 @@ namespace VoyageForge.Terminal
     /// <summary>Console 生成代码使用的基础类型转换和服务容器注入帮助器。</summary>
     /// <remarks>
     /// Console 位置参数最初都是字符串。生成的 Invoke 方法会在调用业务处理器前使用 Convert&lt;T&gt;。
-    /// 若命令只是转发 RPC 请求，应优先把原始值交给 Rpc.Executor 的 IArgumentConverter，避免两层规则不一致。
+    /// 命令参数转换仅服务于 Console 命令；RPC 参数由 RPC Source Generator 按接口声明类型直接序列化。
     /// </remarks>
     public static class CommandArgumentConverter
     {
