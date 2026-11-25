@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,14 +11,20 @@ namespace VoyageForge.Terminal
     {
         /// <summary>输出抽象；具体可以连接 UI Toolkit、UGUI、TextMeshPro 或终端。</summary>
         private readonly IConsoleRenderer _renderer;
-        /// <summary>可选依赖容器；生成代码注入 IServiceProvider 或 ILogger 时从这里取服务。</summary>
+        /// <summary>命令上下文使用的本地 Controller 执行器。</summary>
+        private readonly VoyageForge.Rpc.Executor.LocalExecutor _controllers;
+        /// <summary>供命令处理器解析可选依赖的服务容器。</summary>
         private readonly IServiceProvider _services;
 
         /// <summary>创建 Console 执行器。</summary>
         public ConsoleExecutor(IConsoleRenderer renderer, IServiceProvider services = null)
+            : this(renderer, services, Commands.ConsolePanelController.CreateExecutor()) { }
+
+        public ConsoleExecutor(IConsoleRenderer renderer, IServiceProvider services, VoyageForge.Rpc.Executor.LocalExecutor controllers)
         {
             _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
             _services = services;
+            _controllers = controllers ?? throw new ArgumentNullException(nameof(controllers));
         }
 
         /// <summary>执行一行命令。返回 true 表示处理器成功结束，false 表示解析失败、取消或处理异常。</summary>
@@ -50,6 +56,7 @@ namespace VoyageForge.Terminal
             {
                 Renderer = _renderer,
                 Services = _services,
+                Executor = _controllers,
                 Command = parsed.Command,
                 Tokens = tokens
             };

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -19,6 +19,7 @@ namespace VoyageForge.Terminal
     [DisallowMultipleComponent]
     public class Console : MonoSingleton<Console>, IConsoleRenderer
     {
+        public VoyageForge.Rpc.Executor.LocalExecutor Controllers { get; } = Commands.ConsolePanelController.CreateExecutor();
         // ---------------------------------------------------------------
         // 可配置字段（Inspector 中可见）
         // ---------------------------------------------------------------
@@ -429,7 +430,7 @@ namespace VoyageForge.Terminal
             _commandLine = new ConsoleCommandLine(
                 _commandInput,
                 _suggestionsContainer,
-                new ConsoleExecutor(this),
+                new ConsoleExecutor(this, null, Controllers),
                 _commandRoot);
             _commandLine.ForceScrollToBottom = force => _logList.ForceScrollToBottom = force;
 

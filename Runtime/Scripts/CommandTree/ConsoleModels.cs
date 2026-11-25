@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -84,6 +84,7 @@ namespace VoyageForge.Terminal
     /// <summary>宿主在 Build 阶段和每次执行阶段提供给命令对象的上下文。</summary>
     public sealed class CommandContext
     {
+        public VoyageForge.Rpc.Executor.LocalExecutor Executor { get; internal set; }
         /// <summary>输出目标。可由 Unity UI Toolkit、UGUI、终端或日志窗口实现。</summary>
         public IConsoleRenderer Renderer { get; set; }
         /// <summary>依赖服务容器；生成器可注入 IServiceProvider 和可选 ILogger。</summary>

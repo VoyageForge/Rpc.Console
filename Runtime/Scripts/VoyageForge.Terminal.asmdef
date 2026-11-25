@@ -1,8 +1,9 @@
-﻿{
+{
   "name": "VoyageForge.Terminal",
   "rootNamespace": "VoyageForge.Terminal",
   "references": [
-    "VoyageForge.Depot.Runtime"
+    "VoyageForge.Depot.Runtime",
+    "VoyageForge.Rpc.Executor"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

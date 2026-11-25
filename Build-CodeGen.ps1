@@ -13,14 +13,17 @@ $AnalyzerDirectory = Join-Path $PackageRoot 'Runtime\Analyzers'
 $TargetDll = Join-Path $AnalyzerDirectory 'VoyageForge.Console.CodeGen.dll'
 $TargetMeta = $TargetDll + '.meta'
 
+$buildLog = Join-Path ([IO.Path]::GetTempPath()) ('Rpc.Console-CodeGen-{0}.log' -f [guid]::NewGuid().ToString('N'))
+$transcribing = $false
 try {
+    Start-Transcript -LiteralPath $buildLog -ErrorAction Stop | Out-Null
+    $transcribing = $true
     if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) { throw '未找到 dotnet SDK。' }
     if (-not (Test-Path -LiteralPath $Project)) { throw "找不到项目：$Project" }
 
     if ($Clean) {
-        foreach ($folder in @(Join-Path (Split-Path -Parent $Project) 'bin', Join-Path (Split-Path -Parent $Project) 'obj')) {
-            if (Test-Path -LiteralPath $folder) { Remove-Item -LiteralPath $folder -Recurse -Force }
-        }
+        & dotnet clean $Project --configuration Release --nologo
+        if ($LASTEXITCODE -ne 0) { throw "dotnet clean failed ($LASTEXITCODE)" }
     }
 
     Write-Host '========== Build VoyageForge.Console CodeGen =====================' -ForegroundColor Cyan
@@ -41,16 +44,20 @@ try {
     Copy-Item -LiteralPath $BuiltDll -Destination $TargetDll -Force
     $template = Join-Path $PackageRoot 'CodeGen~\Templates\VoyageForge.Console.CodeGen.dll.meta.template'
     if (-not (Test-Path -LiteralPath $template)) { throw "找不到 meta 模板：$template" }
-    $meta = (Get-Content -LiteralPath $template -Raw).Replace('__GUID__', [guid]::NewGuid().ToString('N'))
-    [System.IO.File]::WriteAllText($TargetMeta, $meta)
+    if (-not (Test-Path -LiteralPath $TargetMeta)) {
+        $meta = (Get-Content -LiteralPath $template -Raw).Replace('__GUID__', [guid]::NewGuid().ToString('N'))
+        [System.IO.File]::WriteAllText($TargetMeta, $meta)
+    }
     Write-Host "[成功] DLL：$TargetDll" -ForegroundColor Green
     Write-Host "[成功] META：$TargetMeta" -ForegroundColor Green
     Write-Host '请在 Unity Inspector 中确认 DLL 的 Asset Label 为 RoslynAnalyzer。' -ForegroundColor Yellow
 }
 catch {
     Write-Host ("[失败] " + $_.Exception.Message) -ForegroundColor Red
-    if (-not $NoPause) { [void](Read-Host '按 Enter 键关闭窗口') }
+    if ($transcribing) { Write-Host "构建日志：$buildLog" }
     throw
 }
-
-if (-not $NoPause) { [void](Read-Host '按 Enter 键关闭窗口') }
+finally {
+    if ($transcribing) { Stop-Transcript | Out-Null }
+    if (-not $NoPause) { [void](Read-Host '按 Enter 键关闭窗口') }
+}

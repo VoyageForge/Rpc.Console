@@ -2,96 +2,21 @@
 
 基于命令树的运行时控制台（UI Toolkit）：UI 负责展示，命令层由 `ConsoleCommand` 树 + `ConsoleExecutor` 执行，补全由 `CommandCompletion` 计算。
 
-## 架构
+## 执行路径
 
-```
-Runtime/Scripts/
-  Console.cs                控制台单例（MonoSingleton），IConsoleRenderer
-  ConsoleCommandLine.cs     输入行：按键、历史、补全、执行与结果展示
-  ConsoleLogList.cs         日志列表
-  ConsoleLogEntry.cs        日志条目
-  BuiltinCommandTree.cs     内置命令树：help / clear / exit / log / listen
-  CommandTree/
-    CommandBase.cs              命令基类（可选）
-    ConsoleCommand.cs           命令节点：名称、描述、参数、子命令、处理委托
-    ConsoleCommandAttribute.cs  [ConsoleCommand("路径", "描述")]
-    ConsoleCommandLine.cs       输入解析（CommandParser）
-    ConsoleCommandLine 相关：
-    CommandParser.cs            分词（引号、转义）
-    CommandCompletion.cs        补全（命令/子命令/参数级中文提示）
-    CommandArgumentConverter.cs 字符串 → 参数类型
-    ConsoleExecutor.cs          执行器（实例类，非静态/非单例）
-    ConsoleModels.cs            CommandInvocation / CompletionItem
-    ConsoleContracts.cs         IConsoleRenderer / ICommandArgumentCompletionProvider
-  Commands/
-    ListenLogBridge.cs          listen 命令与日志监听的桥接
-  Resources/Console/           RuntimeConsole.uxml / .uss / ConsoleSettings.asset
-```
-
-分层：
-
-- **UI**：`Console`（面板、日志、输入行、补全列表）；
-- **命令树**：`ConsoleCommand` 描述命令/子命令/参数；`ConsoleExecutor` 执行；`CommandCompletion` 补全；
-- **宿主**：在 `Console` 构建时创建根命令并注入 `ConsoleExecutor`。
-
-## 命令树 API
+`ConsoleCommandLine` 收集输入，`CommandParser` 将文本解析为命令和参数，`ConsoleExecutor` 调用命令处理器并把结果写入 `IConsoleRenderer`。内置的 `clear` 命令通过 `invocation.Context.Executor.Local<ConsolePanelController>().Clear()` 操作本地控制台。命令层依赖 Rpc.Executor，运行命令无需创建网络 Session。
 
 ```csharp
-// 根命令
-ConsoleCommand root = new ConsoleCommand("console", "控制台命令");
-
-// 子命令 + 参数
-ConsoleCommand listen = root.Add("listen", "控制日志监听开关");
-listen.AddArgument("mode", "日志监听开关（on/off）", completion: new[] { "on", "off" });
-
-// 执行器（实例，不是静态类/单例）
-ConsoleExecutor executor = new ConsoleExecutor(renderer);
-RpcResponse result = await executor.ExecuteAsync(root, "listen on", ct);
-
-// 补全（命令/子命令/参数）
-IReadOnlyList<CompletionItem> items = CommandCompletion.Get(root, new[] { "listen", "" });
+var executor = new ConsoleExecutor(renderer);
+bool succeeded = await executor.ExecuteAsync(root, "listen on", ct);
+IReadOnlyList<string> suggestions = CommandCompletion.Get(root, new[] { "listen", "" });
 ```
 
-`[ConsoleCommand]` 标注的命令类由源生成器（`CodeGen~/VoyageForge.Terminal.SourceGen`）收集，未标注时也可手动建树。
+## 声明与注册命令
 
-## 源代码生成器（CodeGen~）
+在命令类上使用 `[ConsoleCommand]`，在入口方法上使用 `[RootCommand]`。方法上的 `[ConsoleCommand("子命令路径")]` 可声明多级子命令。命令参数由生成的处理器转换。[内置命令示例](Runtime/Scripts/Commands/ClearCommand.cs)
 
-`CodeGen~/VoyageForge.Terminal.CodeGen` 扫描 `[ConsoleCommand]`，生成**实例类** `ConsoleCommandCatalog : ICommandSource`（不生成静态入口）。
-
-```csharp
-[ConsoleCommand("demo2", "生成器示例命令")]
-public sealed class Demo2Command
-{
-    [RootCommand]
-    public Task<object> Execute(CommandInvocation invocation) { ... }
-
-    [ConsoleCommand("add", "整数加法")]
-    public Task<object> Add(int a, int b, CommandInvocation invocation) { ... }
-}
-```
-
-注册：
-
-```csharp
-ConsoleCommandCatalog catalog = new ConsoleCommandCatalog();
-foreach (ConsoleCommand command in catalog.GetCommands())
-    console.RegisterCommand(command);
-```
-
-生成内容：
-
-- 每个根命令类的实例化 + `ConsoleCommand` 节点（路径按空格拆分，复用 `GetOrAddSubcommand`）；
-- 方法参数 → `ConsoleArgument`（Name / `Type` / Description），Handler 用 `CommandArgumentConverter.Convert<T>` 转换；
-- `[RootCommand]` → 根节点 Handler；`[ConsoleCommand("sub path")]` / `[ConsoleSubcommand("sub path")]` → 子命令 Handler；
-- 返回类型支持 `void` / `Task` / `Task<object>` / `object`。
-
-构建：
-
-```powershell
-.\Build-CodeGen.ps1
-```
-
-DLL 部署到 `Runtime/Analyzers/VoyageForge.Terminal.CodeGen.dll`，meta 由模板生成（Asset Label `RoslynAnalyzer`）。
+生成器为各业务程序集生成实现 `ICommandSource` 的目录。控制台初始化时，`ConsoleCommandCatalogAggregator` 收集这些目录中的命令。修改生成器本身后，在本包根目录运行 `Build-CodeGen.ps1`，将 DLL 部署至 `Runtime/Analyzers/VoyageForge.Console.CodeGen.dll`。[命令生成器源码](CodeGen~/VoyageForge.Console.CodeGen/ConsoleCommandGenerator.cs)
 
 ## 内置命令
 

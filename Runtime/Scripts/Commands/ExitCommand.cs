@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 namespace VoyageForge.Terminal.Commands
 {
@@ -9,7 +9,7 @@ namespace VoyageForge.Terminal.Commands
         [RootCommand]
         public Task<object> Execute(CommandInvocation invocation)
         {
-            Console.Instance?.Hide();
+            invocation.Context.Executor.Local<ConsolePanelController>().Hide();
             return Task.FromResult<object>(null);
         }
     }
