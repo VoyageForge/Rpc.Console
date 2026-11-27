@@ -20,6 +20,7 @@ namespace VoyageForge.Terminal
         public ConsoleExecutor(IConsoleRenderer renderer, IServiceProvider services = null)
             : this(renderer, services, Commands.ConsolePanelController.CreateExecutor()) { }
 
+        /// <summary>使用宿主提供的本地执行器，让命令处理器访问同一组 Controller 工厂。</summary>
         public ConsoleExecutor(IConsoleRenderer renderer, IServiceProvider services, VoyageForge.Rpc.Executor.LocalExecutor controllers)
         {
             _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));

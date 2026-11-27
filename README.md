@@ -2,6 +2,8 @@
 
 基于命令树的运行时控制台（UI Toolkit）：UI 负责展示，命令层由 `ConsoleCommand` 树 + `ConsoleExecutor` 执行，补全由 `CommandCompletion` 计算。
 
+0.5.0 依赖 Rpc.Executor 0.5.0。需要让多个命令共享业务 Controller 时，把配置好的 `LocalExecutor` 传给 `ConsoleExecutor` 的三参数构造函数。
+
 ## 执行路径
 
 `ConsoleCommandLine` 收集输入，`CommandParser` 将文本解析为命令和参数，`ConsoleExecutor` 调用命令处理器并把结果写入 `IConsoleRenderer`。内置的 `clear` 命令通过 `invocation.Context.Executor.Local<ConsolePanelController>().Clear()` 操作本地控制台。命令层依赖 Rpc.Executor，运行命令无需创建网络 Session。
